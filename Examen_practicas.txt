@@ -1,0 +1,71 @@
+1.
+
+#buscando el paquete de apache
+yum search apache
+
+#instalando el paquete de apache
+yum install httpd
+
+#iniciando servicio
+/etc/init.d/httpd start
+
+#añadiendo servicio para ser configurado con chkconfig
+chkconfig --add httpd
+
+#añadiendo servicio al inicio del sistema
+chkconfig httpd on
+
+3.
+
+#descargando firefox
+yum install wget
+wget https://ftp.mozilla.org/pub/firefox/releases/49.0.2/linux-i686/es-ES/firefox-49.0.2.tar.bz2
+
+#descargando firmas y fichero sha con wget
+wget https://ftp.mozilla.org/pub/firefox/releases/49.0.2/KEY
+wget https://ftp.mozilla.org/pub/firefox/releases/49.0.2/SHA512SUMS
+
+#Otra opción: descargarlo con elinks
+yum install elinks
+elinks https://ftp.mozilla.org
+#pub->firefox->releases->49.0.2->linux-i686->es-ES->firefox-49.0.2.tar.bz2
+#save
+#pub->firefox->releases->49.0.2->KEY
+#save file
+#pub->firefox->releases->49.0.2->SHA512SUMS
+#save file
+
+#comprobando integridad con fichero sha
+grep /linux-i686/es-ES/firefox-49.0.2.tar.bz2 SHA512SUMS | cut -d " " -f 1 >sha
+sha512sum firefox-49.0.2.tar.bz2 | cut -d " " -f 1 > sha2
+diff sha sha2 #si no devuelve nada por pantalla, ambos ficheros son iguales -> el fichero esta integro
+
+#comprobando firma con gpg
+gpg <KEY
+
+#extrayendo fichero con tar
+tar -xjf firefox-49.0.2.tar.bz2
+
+2. 
+
+#Estableciendo conexión sin clave
+
+#generando clave publica
+ssh-keygen -t dsa -b 1024 #dejar clave en blanco cuando lo solicite
+
+#copiando clave pública al servidor
+ssh-copy-id -i /root/.ssh/id_dsa.pub [direccion_ip_servidor_backup]
+
+#ejecutar script
+
+	#Generando nombre de fichero a partir del hostname y la fecha
+	filename="$(date +"%F")_$HOSTNAME.tar"
+
+	#generando copia de seguridad completa y verificando
+	tar cvpf $filename --one-file-system /home /root /etc /var -W
+
+	#transfiriendo copia de seguridad al servidor centralizado
+	rsync -av $filename usuario@direccionip:[ruta_directorio_backups]
+
+	#Borrando fichero transferido
+	rm $filename
